@@ -20,7 +20,7 @@ import javax.microedition.midlet.MIDlet;
  */
 public class SwissGrid extends MIDlet implements CommandListener {
 
-	private final String version = "1.0.1";
+	private final String version = "1.0.2";
 	
 	private Display display;
 	private Form form;
@@ -140,13 +140,13 @@ public class SwissGrid extends MIDlet implements CommandListener {
 		double[] swissCoords;
 		try {
 			swissCoords = getLocation();
-			status.setLabel("Last location:");
+			status.setLabel("Last location");
 			status.setText(new Date().toString());
 			lv03.setLabel("LV03");
 			lv03.setText((int)swissCoords[0] + "\n" + (int)swissCoords[1]);
 			wgs84.setLabel("WGS84");
-			wgs84.setText("Lat:\n"+coordinates.getLatitude() + "\n" +
-						  "Lon:\n"+coordinates.getLongitude());
+			wgs84.setText(coordinates.getLatitude() + "N\n" +
+						  coordinates.getLongitude()+ "E");
 		} catch (Exception e) {
 			status.setLabel("Oops!");
 			status.setText("Unable to determine location: "+e.getMessage());
