@@ -9,4 +9,4 @@ Tested only on [Nokia C5-00](http://developer.nokia.com/Devices/Device_specifica
 
 ## Getting started
 
-[Download binaries](dist/SwissGrid.zip) and install on your phone.
+[Download binaries](https://github.com/garamond/s60-swissgrid/blob/master/dist/SwissGrid.zip?raw=true) and install on your phone.
