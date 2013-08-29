@@ -5,4 +5,4 @@ MIDlet-Name: SwissGrid
 MIDlet-Vendor: Andreas Moor
 MIDlet-Version: 1.0.1
 MicroEdition-Configuration: CLDC-1.1
-MicroEdition-Profile: MIDP-2.0
+MicroEdition-Profile: MIDP-2.1
