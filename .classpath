@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="lib" path="/home/amoor/projects/s60-swissgrid/lib/cldcapi11.jar"/>
+	<classpathentry kind="lib" path="/home/amoor/projects/s60-swissgrid/lib/jsr75.jar"/>
+	<classpathentry kind="lib" path="/home/amoor/projects/s60-swissgrid/lib/jsr179.jar"/>
+	<classpathentry kind="lib" path="/home/amoor/projects/s60-swissgrid/lib/midpapi21.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
