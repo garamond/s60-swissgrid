@@ -1,5 +1,8 @@
+import java.io.OutputStream;
 import java.util.Date;
 
+import javax.microedition.io.Connector;
+import javax.microedition.io.file.FileConnection;
 import javax.microedition.lcdui.Command;
 import javax.microedition.lcdui.CommandListener;
 import javax.microedition.lcdui.Display;
@@ -16,23 +19,25 @@ import javax.microedition.midlet.MIDlet;
 /**
  * Adapted from:
  * http://developer.nokia.com/Community/Wiki/Finding_position_in_Java_ME
- *
+ * 
  */
 public class SwissGrid extends MIDlet implements CommandListener {
 
-	private final String version = "1.0.2";
-	
+	private final String version = "1.1";
+
 	private Display display;
 	private Form form;
 	private Command exitCommand;
+	private Command saveCommand;
 	private Command refreshCommand;
 	private StringItem status;
 	private StringItem lv03;
 	private StringItem wgs84;
 
 	private Location location;
+	private double[] swissCoords;
+	
 	private LocationProvider locationProvider;
-	private Coordinates coordinates;
 	private Criteria criteria;
 
 	/**
@@ -40,20 +45,22 @@ public class SwissGrid extends MIDlet implements CommandListener {
 	 */
 	public SwissGrid() {
 		form = new Form("SwissGrid");
-		
+
 		exitCommand = new Command("Exit", Command.EXIT, 2);
+		saveCommand = new Command("Save", Command.OK, 3);
 		refreshCommand = new Command("Refresh", Command.OK, 1);
 
-		status = new StringItem("SwissGrid v"+version, "Welcome");
+		status = new StringItem("SwissGrid v" + version, "Welcome");
 		lv03 = new StringItem("", "");
 		wgs84 = new StringItem("", "");
-		
+
 		form.append(status);
 		form.append(lv03);
 		form.append(wgs84);
 
 		form.addCommand(exitCommand);
 		form.addCommand(refreshCommand);
+		form.addCommand(saveCommand);
 		form.setCommandListener(this);
 
 		display = Display.getDisplay(this);
@@ -75,6 +82,7 @@ public class SwissGrid extends MIDlet implements CommandListener {
 	 * From MIDlet. Called when the MIDlet is started.
 	 */
 	public void startApp() {
+		displayLocation();
 	}
 
 	/**
@@ -106,21 +114,21 @@ public class SwissGrid extends MIDlet implements CommandListener {
 	public void commandAction(Command c, Displayable d) {
 		if (c == refreshCommand) {
 			displayLocation();
+		} else if (c == saveCommand) {
+			save();
 		} else if (c == exitCommand) {
 			notifyDestroyed();
 		}
 	}
 
-	private double[] getLocation() throws LocationException, InterruptedException {
-		location = locationProvider.getLocation(180);
-		coordinates = location.getQualifiedCoordinates();
-		// Use coordinate information
-		double lat = coordinates.getLatitude();
-		double lon = coordinates.getLongitude();
-		double alt = coordinates.getAltitude();
-		return ApproxSwissProj.WGS84toLV03(lat, lon, alt);
+	private void updateLocation() throws LocationException,
+			InterruptedException {
+		location = locationProvider.getLocation(600);
+		Coordinates coordinates = location.getQualifiedCoordinates();
+		swissCoords = ApproxSwissProj.WGS84toLV03(coordinates.getLatitude(),
+				coordinates.getLongitude(), coordinates.getAltitude());
 	}
-	
+
 	private void clear() {
 		status.setLabel("");
 		status.setText("");
@@ -129,27 +137,50 @@ public class SwissGrid extends MIDlet implements CommandListener {
 		wgs84.setLabel("");
 		wgs84.setText("");
 	}
-	
+
+	private void save() {
+		Coordinates coords = location.getQualifiedCoordinates();
+		try {
+			String string = location.getTimestamp() + "," + coords.getLatitude() + ","
+					+ coords.getLongitude() + "," + coords.getAltitude() + "," + swissCoords[0] + ","
+					+ swissCoords[1] + "\n";
+			byte data[] = string.getBytes();
+			FileConnection fconn = (FileConnection) Connector.open(
+					"file:///E:/swissgrid.txt", Connector.READ_WRITE);
+			if (!fconn.exists()) {
+				fconn.create();
+			}
+			OutputStream ops = fconn.openOutputStream(fconn.fileSize());
+			ops.write(data);
+			ops.close();
+			fconn.close();
+			status.setLabel("Success");
+			status.setText("Saved location");
+		} catch (Exception e) {
+			status.setLabel("Error");
+			status.setText("Failed log file: " + e.getMessage());
+		}
+	}
+
 	/**
 	 * Called to read current location.
 	 */
 	private void displayLocation() {
 		clear();
 		status.setLabel("Processing");
-		status.setText("Finding location...");
-		double[] swissCoords;
+		status.setText("Updating location...");
 		try {
-			swissCoords = getLocation();
+			updateLocation();
 			status.setLabel("Last location");
-			status.setText(new Date().toString());
-			lv03.setLabel("LV03");
+			status.setText(new Date(location.getTimestamp()).toString());
+			lv03.setLabel("CH1903");
 			lv03.setText((int)swissCoords[0] + "\n" + (int)swissCoords[1]);
 			wgs84.setLabel("WGS84");
-			wgs84.setText(coordinates.getLatitude() + "N\n" +
-						  coordinates.getLongitude()+ "E");
+			wgs84.setText(location.getQualifiedCoordinates().getLatitude() + "N\n"
+					+ location.getQualifiedCoordinates().getLongitude() + "E");
 		} catch (Exception e) {
-			status.setLabel("Oops!");
-			status.setText("Unable to determine location: "+e.getMessage());
+			status.setLabel("Error");
+			status.setText("Unable to determine location: " + e.getMessage());
 		}
 	}
 
