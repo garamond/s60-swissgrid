@@ -23,7 +23,7 @@ import javax.microedition.midlet.MIDlet;
  */
 public class SwissGrid extends MIDlet implements CommandListener {
 
-	private final String version = "1.1";
+	private final String version = "1.1.1";
 
 	private Display display;
 	private Form form;
@@ -36,7 +36,7 @@ public class SwissGrid extends MIDlet implements CommandListener {
 
 	private Location location;
 	private double[] swissCoords;
-	
+
 	private LocationProvider locationProvider;
 	private Criteria criteria;
 
@@ -115,7 +115,7 @@ public class SwissGrid extends MIDlet implements CommandListener {
 		if (c == refreshCommand) {
 			displayLocation();
 		} else if (c == saveCommand) {
-			save();
+			saveLocation();
 		} else if (c == exitCommand) {
 			notifyDestroyed();
 		}
@@ -129,20 +129,12 @@ public class SwissGrid extends MIDlet implements CommandListener {
 				coordinates.getLongitude(), coordinates.getAltitude());
 	}
 
-	private void clear() {
-		status.setLabel("");
-		status.setText("");
-		lv03.setLabel("");
-		lv03.setText("");
-		wgs84.setLabel("");
-		wgs84.setText("");
-	}
-
-	private void save() {
+	private void saveLocation() {
 		Coordinates coords = location.getQualifiedCoordinates();
 		try {
-			String string = location.getTimestamp() + "," + coords.getLatitude() + ","
-					+ coords.getLongitude() + "," + coords.getAltitude() + "," + swissCoords[0] + ","
+			String string = location.getTimestamp() + ","
+					+ coords.getLatitude() + "," + coords.getLongitude() + ","
+					+ coords.getAltitude() + "," + swissCoords[0] + ","
 					+ swissCoords[1] + "\n";
 			byte data[] = string.getBytes();
 			FileConnection fconn = (FileConnection) Connector.open(
@@ -158,15 +150,24 @@ public class SwissGrid extends MIDlet implements CommandListener {
 			status.setText("Saved location");
 		} catch (Exception e) {
 			status.setLabel("Error");
-			status.setText("Failed log file: " + e.getMessage());
+			status.setText("Failed to save location: " + e.getMessage());
 		}
+	}
+
+	private void clearDisplay() {
+		status.setLabel("");
+		status.setText("");
+		lv03.setLabel("");
+		lv03.setText("");
+		wgs84.setLabel("");
+		wgs84.setText("");
 	}
 
 	/**
 	 * Called to read current location.
 	 */
 	private void displayLocation() {
-		clear();
+		clearDisplay();
 		status.setLabel("Processing");
 		status.setText("Updating location...");
 		try {
@@ -174,10 +175,11 @@ public class SwissGrid extends MIDlet implements CommandListener {
 			status.setLabel("Last location");
 			status.setText(new Date(location.getTimestamp()).toString());
 			lv03.setLabel("CH1903");
-			lv03.setText((int)swissCoords[0] + "\n" + (int)swissCoords[1]);
+			lv03.setText((int) swissCoords[0] + "\n" + (int) swissCoords[1]);
 			wgs84.setLabel("WGS84");
-			wgs84.setText(location.getQualifiedCoordinates().getLatitude() + "N\n"
-					+ location.getQualifiedCoordinates().getLongitude() + "E");
+			wgs84.setText(location.getQualifiedCoordinates().getLatitude()
+					+ "N\n" + location.getQualifiedCoordinates().getLongitude()
+					+ "E");
 		} catch (Exception e) {
 			status.setLabel("Error");
 			status.setText("Unable to determine location: " + e.getMessage());
